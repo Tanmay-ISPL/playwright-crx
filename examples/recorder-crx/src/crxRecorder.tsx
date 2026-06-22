@@ -187,6 +187,25 @@ export const CrxRecorder: React.FC = ({
     window.dispatch({ event: 'cursorActivity', params: { position } });
   }, []);
 
+  const handleDownload = React.useCallback(() => {
+  const code = source?.text;
+  if (!code) return;
+
+  const modal = createModal(({ isOpen, onResolve, onReject }) => {
+    const defaultFilename = codegenFilenames[selectedFileId] || 'code.txt';
+    return <Dialog title='Download code' isOpen={isOpen} onClose={onReject}>
+      <SaveCodeForm onSubmit={onResolve} suggestedFilename={defaultFilename} />
+    </Dialog>;
+  });
+  
+  modal()
+    .then(({ filename }) => {
+      download(filename, code);
+    })
+    .catch(() => {});
+}, [source, selectedFileId]);
+
+
   return <>
     <ModalContainer />
 
@@ -205,7 +224,7 @@ export const CrxRecorder: React.FC = ({
           <ToolbarButton icon='settings-gear' title='Preferences' onClick={showPreferences}></ToolbarButton>
         </Toolbar>
       </>}
-      <Recorder sources={sources} paused={paused} log={log} mode={mode} onEditedCode={dispatchEditedCode} onCursorActivity={dispatchCursorActivity} />
+      <Recorder sources={sources} paused={paused} log={log} mode={mode} onEditedCode={dispatchEditedCode} onCursorActivity={dispatchCursorActivity} onDownload={handleDownload} />
     </div>
   </>;
 };
