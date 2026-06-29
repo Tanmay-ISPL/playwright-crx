@@ -25,6 +25,9 @@ import type { CrxSettings } from './settings';
 import { addSettingsChangedListener, defaultSettings, loadSettings, removeSettingsChangedListener } from './settings';
 import ModalContainer, { create as createModal } from 'react-modal-promise';
 import { SaveCodeForm } from './saveCodeForm';
+import { SaveToGraphxForm } from './saveToGraphxForm';
+import type { SaveToGraphxResult } from './saveToGraphxForm';
+import { saveScript } from './graphx';
 import './crxRecorder.css';
 import './form.css';
 
@@ -188,22 +191,31 @@ export const CrxRecorder: React.FC = ({
   }, []);
 
   const handleDownload = React.useCallback(() => {
-  const code = source?.text;
-  if (!code) return;
+    const code = source?.text;
+    if (!code)
+      return;
 
-  const modal = createModal(({ isOpen, onResolve, onReject }) => {
-    const defaultFilename = codegenFilenames[selectedFileId] || 'code.txt';
-    return <Dialog title='Download code' isOpen={isOpen} onClose={onReject}>
-      <SaveCodeForm onSubmit={onResolve} suggestedFilename={defaultFilename} />
-    </Dialog>;
-  });
-  
-  modal()
-    .then(({ filename }) => {
-      download(filename, code);
-    })
-    .catch(() => {});
-}, [source, selectedFileId]);
+    const modal = createModal(({ isOpen, onResolve, onReject }) => {
+      return <Dialog title='Save to GraphX' isOpen={isOpen} onClose={onReject}>
+        <SaveToGraphxForm onSubmit={onResolve} />
+      </Dialog>;
+    });
+
+    modal()
+        .then((params: SaveToGraphxResult) => {
+          return saveScript({
+            ...params,
+            code,
+            language: selectedFileId,
+          });
+        })
+        .then(result => {
+          if (result)
+            // eslint-disable-next-line no-console
+            console.log('[GraphX] saved', result);
+        })
+        .catch(() => {});
+  }, [source, selectedFileId]);
 
 
   return <>

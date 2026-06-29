@@ -23,10 +23,10 @@ export const SaveCodeForm: React.FC<{
 
   const [filename, setFilename] = React.useState<string>(suggestedFilename ?? '');
 
-  return <form id='save-form' onSubmit={(e) => {
-  e.preventDefault();
-  onSubmit({ filename });
-}}>
+  return <form id='save-form' onSubmit={e => {
+    e.preventDefault();
+    onSubmit({ filename });
+  }}>
     <label htmlFor='filename'>File Name:</label>
     <input
       type='text'
